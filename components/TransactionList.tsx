@@ -1,16 +1,9 @@
 import { Transaction } from "@/types/transaction";
 import TransactionItem from "./TransactionItem";
 
-type Transaction = {
-  id: string
-  title: string
-  amount: number
-  type: "income" | "expense"
-}
-
 type Props = {
   transactions: Transaction[]
-  onDelete: (id: string) => void
+  onDelete: (id: number) => void
 }
 
 export default function TransactionList({ transactions, onDelete }: Props) {
@@ -28,7 +21,7 @@ export default function TransactionList({ transactions, onDelete }: Props) {
           className="flex justify-between items-center bg-white shadow-md rounded-xl p-4"
         >
           <div>
-            <p className="font-semibold">{transaction.title}</p>
+            <p className="font-semibold">{transaction.description}</p>
             <p
               className={`text-sm ${
                 transaction.type === "income"

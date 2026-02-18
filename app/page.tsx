@@ -24,7 +24,7 @@ export default function Home() {
     setTransactions((prev) => [transaction, ...prev]);
   };
 
-  function handleDelete(id: string) {
+  function handleDelete(id: number) {
     setTransactions((prev) =>
       prev.filter((transaction) => transaction.id !== id)
     )
