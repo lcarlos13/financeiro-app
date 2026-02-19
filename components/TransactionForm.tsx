@@ -2,13 +2,13 @@
 import { useState } from "react"
 
 interface TransactionFormProps {
-  onAddTransaction: (transaction: { description: string; amount: number; type: "income" | "expense" }) => void
+  onAddTransaction: (transaction: { description: string; amount: number; type: "income" | "fixed" | "card" }) => void
 }
 
 export default function TransactionForm({ onAddTransaction }: TransactionFormProps) {
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
-  const [type, setType] = useState<"income" | "expense">("income")
+  const [type, setType] = useState<"income" | "fixed" | "card">("income")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,9 +35,10 @@ export default function TransactionForm({ onAddTransaction }: TransactionFormPro
         onChange={(e) => setAmount(e.target.value)}
         className="p-2 border rounded"
       />
-      <select value={type} onChange={(e) => setType(e.target.value as "income" | "expense")} className="p-2 border rounded">
+      <select value={type} onChange={(e) => setType(e.target.value as "income" | "fixed" | "card")} className="p-2 border rounded">
         <option value="income">Receita</option>
-        <option value="expense">Despesa</option>
+        <option value="fixed">Despesa Fixa</option>
+        <option value="card">Despesa Cartão</option>
       </select>
       <button type="submit" className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">
         Adicionar

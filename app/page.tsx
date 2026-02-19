@@ -7,17 +7,34 @@ import { Transaction } from "@/types/transaction"
 export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
 
+  const [openTab, setOpenTab] = useState<string | null>(null)
+
+  function toggleTab(tab: string) {
+    setOpenTab(prev => (prev === tab ? null : tab))
+  }
+
+  const incomes = transactions.filter(t => t.type === "income")
+  const fixedExpenses = transactions.filter(t => t.type === "fixed")
+  const cardExpenses = transactions.filter(t => t.type === "card")
+
+
   // Totais derivados
   const totalIncome = transactions
   .filter((t) => t.type === "income")
   .reduce((acc, t) => acc + Number(t.amount), 0)
 
-  const totalExpense = transactions
-  .filter((t) => t.type === "expense")
+  const totalFixed = transactions
+  .filter((t) => t.type === "fixed")
+  .reduce((acc, t) => acc + Number(t.amount), 0)
+
+  const totalCard = transactions
+  .filter((t) => t.type === "card")
   .reduce((acc, t) => acc + Number(t.amount), 0)
 
 
+  const totalExpense = totalFixed + totalCard
   const balance = totalIncome - totalExpense
+
 
   useEffect(() => {
     async function fetchTransactions() {
@@ -28,7 +45,7 @@ export default function Home() {
     fetchTransactions()
   }, [])
 
-  async function handleAddTransaction(transaction: { description: string; amount: number; type: "income" | "expense" }) {
+  async function handleAddTransaction(transaction: { description: string; amount: number; type: "income" | "fixed" | "card" }) {
     try {
       const res = await fetch("/api/transactions", {
         method: "POST",
@@ -52,33 +69,220 @@ export default function Home() {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-gray-50 p-6 font-sans text-gray-800 flex justify-center">
-      <div className="w-full max-w-2xl">
-        <h1 className="text-3xl font-bold mb-6 text-center text-blue-900">Controle Financeiro</h1>
+  // ================= UI COMPONENT =================
+  function Accordion({
+    id,
+    title,
+    icon,
+    children,
+  }: {
+    id: string
+    title: string
+    icon: string
+    children: React.ReactNode
+  }) {
+    const isOpen = openTab === id
 
-        {/* Totais */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-5 rounded-xl shadow-md flex flex-col items-center border border-blue-800">
-            <p className="text-sm font-medium text-blue-900">Receita</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">R$ {totalIncome}</p>
+    return (
+      <div className="bg-blue-100 border-2 border-black rounded-2xl overflow-hidden shadow-md">
+        <button
+          onClick={() => toggleTab(id)}
+          className="w-full flex justify-between items-center p-4 text-black font-semibold"
+        >
+          <span className="flex items-center gap-2">
+            <span className="text-lg">{icon}</span>
+            {title}
+          </span>
+
+          <span
+            className={`transform transition-transform duration-300 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          >
+            ▼
+          </span>
+        </button>
+
+        <div
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="p-4 border-t-2 border-black bg-white text-black">
+            {children}
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-md flex flex-col items-center border border-red-600">
-            <p className="text-sm font-medium text-blue-900">Despesa</p>
-            <p className="text-2xl font-bold text-red-600 mt-1">R$ {totalExpense}</p>
-          </div>
-          <div className="bg-white p-5 rounded-xl shadow-md flex flex-col items-center border border-green-700">
-            <p className="text-sm font-medium text-blue-900">Saldo</p>
-            <p className="text-2xl font-bold text-green-800 mt-1">R$ {balance}</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-gray-100 min-h-screen py-10">
+      <div className="max-w-2xl mx-auto px-4 space-y-6">
+
+        <div className="relative">
+
+            {/* Background decorativo */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur-xl opacity-30"></div>
+
+            {/* Card principal */}
+            <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 shadow-2xl text-center overflow-hidden">
+
+              {/* Efeito brilho sutil */}
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+
+              {/* Logo */}
+              <div className="flex justify-center mb-5">
+                <div className="bg-white p-3 rounded-2xl shadow-lg transform hover:scale-105 transition duration-300">
+                  <img
+                    src="/icon-192.png"
+                    alt="Logo"
+                    className="w-20 h-20"
+                  />
+                </div>
+              </div>
+
+              {/* Título */}
+              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
+                Gerenciador Financeiro
+              </h1>
+
+              {/* Subtítulo */}
+              <p className="text-blue-100 mt-3 text-sm md:text-base">
+                Controle inteligente das suas receitas e despesas
+              </p>
+
           </div>
         </div>
 
-        {/* Formulário */}
-        <TransactionForm onAddTransaction={handleAddTransaction} />
 
-        {/* Lista de transações */}
-        <TransactionList transactions={transactions} onDelete={handleDelete} />
+        {/* ================= TOTAIS ================= */}
+        <Accordion id="totais" title="Totais" icon="📊">
+          <div className="space-y-2">
+            <p>
+              Receitas:{" "}
+              <span className="text-green-600 font-semibold">
+                R$ {totalIncome.toFixed(2)}
+              </span>
+            </p>
+            <p>
+              Despesas Fixas:{" "}
+              <span className="text-red-600 font-semibold">
+                R$ {totalFixed.toFixed(2)}
+              </span>
+            </p>
+            <p>
+              Despesas Cartão:{" "}
+              <span className="text-red-600 font-semibold">
+                R$ {totalCard.toFixed(2)}
+              </span>
+            </p>
+            <p
+              className={`font-bold ${
+                balance >= 0 ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              Saldo: R$ {balance.toFixed(2)}
+            </p>
+          </div>
+        </Accordion>
+
+        {/* ================= GANHOS ================= */}
+        <Accordion id="ganhos" title="Ganhos" icon="💰">
+          <div className="mb-4 p-3 border-2 border-green-600 rounded-lg text-green-600 font-semibold bg-green-50">
+            Total Ganhos: R$ {totalIncome.toFixed(2)}
+          </div>
+
+          {incomes.map(t => (
+            <div
+              key={t.id}
+              className="flex justify-between py-2 border-b border-gray-300"
+            >
+              <span>{t.description}</span>
+              <div className="flex gap-3">
+                <span className="text-green-600 font-semibold">
+                  R$ {Number(t.amount).toFixed(2)}
+                </span>
+                <button
+                  onClick={() => handleDelete(t.id)}
+                  className="text-red-600 font-bold"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+          ))}
+        </Accordion>
+
+        {/* ================= FIXED ================= */}
+        <Accordion id="fixed" title="Despesas Fixas" icon="🏠">
+          <div className="mb-4 p-3 border-2 border-red-600 rounded-lg text-red-600 font-semibold bg-red-50">
+            Total Despesas Fixas: R$ {totalFixed.toFixed(2)}
+          </div>
+
+          {fixedExpenses.map(t => (
+            <div
+              key={t.id}
+              className="flex justify-between py-2 border-b border-gray-300"
+            >
+              <span>{t.description}</span>
+              <div className="flex gap-3">
+                <span className="text-red-600 font-semibold">
+                  R$ {Number(t.amount).toFixed(2)}
+                </span>
+                <button
+                  onClick={() => handleDelete(t.id)}
+                  className="text-red-600 font-bold"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+          ))}
+        </Accordion>
+
+        {/* ================= CARD ================= */}
+        <Accordion id="card" title="Despesas Cartão" icon="💳">
+          <div className="mb-3 p-3 border-2 border-red-600 rounded-lg text-red-600 font-semibold bg-red-50">
+            Total Cartão: R$ {totalCard.toFixed(2)}
+          </div>
+
+          <div
+            className={`mb-4 p-3 border-2 rounded-lg font-bold ${
+              balance >= 0
+                ? "border-green-600 text-green-600 bg-green-50"
+                : "border-red-600 text-red-600 bg-red-50"
+            }`}
+          >
+            Saldo Atual: R$ {balance.toFixed(2)}
+          </div>
+
+          {cardExpenses.map(t => (
+            <div
+              key={t.id}
+              className="flex justify-between py-2 border-b border-gray-300"
+            >
+              <span>{t.description}</span>
+              <div className="flex gap-3">
+                <span className="text-red-600 font-semibold">
+                  R$ {Number(t.amount).toFixed(2)}
+                </span>
+                <button
+                  onClick={() => handleDelete(t.id)}
+                  className="text-red-600 font-bold"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+          ))}
+        </Accordion>
+        {/* ==================== ADICIONAR ==================== */}
+        <Accordion id="add" title="Adicionar" icon="➕">
+            <TransactionForm onAddTransaction={handleAddTransaction} />
+        </Accordion>
+
       </div>
-    </main>
+    </div>
   )
 }
