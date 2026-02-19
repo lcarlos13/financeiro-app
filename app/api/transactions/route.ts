@@ -1,12 +1,7 @@
 // app/api/transactions/route.ts
 import { NextResponse } from "next/server"
-import pkg from "pg"
-const { Pool } = pkg
+import { pool } from "@/lib/db"
 
-// Pool de conexão com Neon
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-})
 
 // Função auxiliar para pegar JSON da requisição
 async function getBody(req: Request) {
@@ -17,39 +12,70 @@ async function getBody(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const client = await pool.connect()
-    const result = await client.query("SELECT * FROM transactions ORDER BY id DESC")
-    client.release()
+    const { searchParams } = new URL(request.url)
+    const cycleId = searchParams.get("cycleId")
 
-    return NextResponse.json({ success: true, transactions: result.rows })
-  } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const body = await getBody(req)
-    const { description, amount, type } = body
-
-    if (!description || !amount || !type) {
-      return NextResponse.json({ success: false, error: "Dados incompletos" }, { status: 400 })
+    if (!cycleId) {
+      return NextResponse.json(
+        { error: "cycleId é obrigatório" },
+        { status: 400 }
+      )
     }
 
-    const client = await pool.connect()
-    const result = await client.query(
-      "INSERT INTO transactions (description, amount, type) VALUES ($1, $2, $3) RETURNING *",
-      [description, amount, type]
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM transactions
+      WHERE cycle_id = $1
+      ORDER BY created_at DESC
+      `,
+      [cycleId]
     )
-    client.release()
 
-    return NextResponse.json({ success: true, transaction: result.rows[0] })
-  } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
+    return NextResponse.json(result.rows)
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json(
+      { error: "Erro ao buscar transações" },
+      { status: 500 }
+    )
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const { description, amount, type, date, cycle_id } = body
+
+    if (!cycle_id) {
+      return NextResponse.json(
+        { error: "cycle_id é obrigatório" },
+        { status: 400 }
+      )
+    }
+
+    const result = await pool.query(
+      `
+      INSERT INTO transactions
+      (description, amount, type, date, cycle_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+      `,
+      [description, amount, type, date, cycle_id]
+    )
+
+    return NextResponse.json(result.rows[0])
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json(
+      { error: "Erro ao criar transação" },
+      { status: 500 }
+    )
+  }
+}
+
 
 export async function DELETE(req: Request) {
   try {

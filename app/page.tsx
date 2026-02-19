@@ -9,6 +9,10 @@ export default function Home() {
 
   const [openTab, setOpenTab] = useState<string | null>(null)
 
+  const [cycles, setCycles] = useState<any[]>([])
+  const [selectedCycleId, setSelectedCycleId] = useState<number | null>(null)
+
+
   function toggleTab(tab: string) {
     setOpenTab(prev => (prev === tab ? null : tab))
   }
@@ -37,27 +41,68 @@ export default function Home() {
 
 
   useEffect(() => {
-    async function fetchTransactions() {
-      const res = await fetch("/api/transactions")
+    async function fetchCycles() {
+      const res = await fetch("/api/cycles")
       const data = await res.json()
-      if (data.success) setTransactions(data.transactions)
+
+      setCycles(data)
+
+      if (data.length > 0) {
+        setSelectedCycleId(data[0].id)
+      }
     }
-    fetchTransactions()
+
+    fetchCycles()
   }, [])
 
-  async function handleAddTransaction(transaction: { description: string; amount: number; type: "income" | "fixed" | "card" }) {
+
+  useEffect(() => {
+    if (!selectedCycleId) return
+
+    async function fetchTransactions() {
+      const res = await fetch(
+        `/api/transactions?cycleId=${selectedCycleId}`
+      )
+      const data = await res.json()
+      setTransactions(data)
+    }
+
+    fetchTransactions()
+  }, [selectedCycleId])
+
+
+  async function handleAddTransaction(transaction: {
+    description: string
+    amount: number
+    type: "income" | "fixed" | "card"
+  }) {
     try {
+      if (!selectedCycleId) return
+
+      const today = new Date().toISOString().split("T")[0] 
+      // formato YYYY-MM-DD
+
       const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(transaction),
+        body: JSON.stringify({
+          ...transaction,
+          date: today,
+          cycle_id: selectedCycleId,
+        }),
       })
+
       const data = await res.json()
-      if (data.success) setTransactions((prev) => [data.transaction, ...prev])
+
+      if (res.ok) {
+        setTransactions((prev) => [data, ...prev])
+      }
+
     } catch (err) {
       console.error(err)
     }
   }
+
 
   async function handleDelete(id: number) {
     try {
@@ -68,6 +113,17 @@ export default function Home() {
       console.error(err)
     }
   }
+
+  function formatDateBR(dateString: string) {
+    const date = new Date(dateString)
+
+    const day = String(date.getUTCDate()).padStart(2, "0")
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0")
+    const year = date.getUTCFullYear()
+
+    return `${day}-${month}-${year}`
+  }
+
 
   // ================= UI COMPONENT =================
   function Accordion({
@@ -154,6 +210,29 @@ export default function Home() {
 
           </div>
         </div>
+
+        {cycles.length > 0 && selectedCycleId && (
+          <div className="bg-white rounded-2xl shadow-md p-4 border-2 border-black">
+
+            <label className="block text-black font-semibold mb-2">
+              📅 Mês de Referência
+            </label>
+
+            <select
+              value={selectedCycleId}
+              onChange={(e) => setSelectedCycleId(Number(e.target.value))}
+              className="w-full p-3 border-2 border-gray-700 rounded-xl text-black bg-gray-50"
+            >
+              {cycles.map((cycle) => (
+                <option key={cycle.id} value={cycle.id}>
+                  {cycle.name} ({formatDateBR(cycle.start_date)} → {formatDateBR(cycle.end_date)}
+)
+                </option>
+              ))}
+            </select>
+
+          </div>
+        )}
 
 
         {/* ================= TOTAIS ================= */}
