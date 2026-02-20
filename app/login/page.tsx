@@ -53,7 +53,7 @@ export default function Login() {
             </div>
 
             {/* Título */}
-            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
+            <h1 className="text-xl md:text-2xl font-bold text-white tracking-wide">
               Gerenciador Financeiro
             </h1>
 
@@ -63,10 +63,8 @@ export default function Login() {
             </p>
 
         </div>
-      </div>
 
-        <div className="w-full max-w-md items-center justify-center px-4">
-      
+      <div className="flex justify-center mb-5">
         <form
           onSubmit={handleLogin}
           className="bg-white p-8 rounded-2xl shadow-lg w-80"
@@ -98,6 +96,7 @@ export default function Login() {
             Entrar
           </button>
         </form>
+        </div>
       </div>
     </div>
   )
