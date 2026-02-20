@@ -28,74 +28,63 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 relative overflow-hidden">
       
-      <div className="w-full max-w-md items-center justify-center px-4">
+      {/* Background Decorativo - Adicionado z-0 e movido para fora do container do card */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 blur-3xl opacity-20 z-0"></div>
 
-          {/* Background decorativo */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-3xl blur-xl opacity-30"></div>
-
-          {/* Card principal */}
-          <div className="relative bg-gradient-to-r from-blue-400 to-indigo-400 rounded-3xl p-8 shadow-2xl text-center overflow-hidden">
-
-            {/* Efeito brilho sutil */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
-
-            {/* Logo */}
-            <div className="flex justify-center mb-5">
-              <div className="bg-white p-3 rounded-2xl shadow-lg transform hover:scale-105 transition duration-300">
-                <img
-                  src="/icon-192.png"
-                  alt="Logo"
-                  className="w-20 h-20"
-                />
-              </div>
+      <div className="w-full max-w-md z-10"> {/* z-10 garante que o conteúdo fique acima do fundo */}
+        
+        {/* Card de Cabeçalho */}
+        <div className="relative bg-gradient-to-r from-blue-400 to-indigo-400 rounded-t-3xl p-8 shadow-xl text-center overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+          
+          <div className="flex justify-center mb-5">
+            <div className="bg-white p-3 rounded-2xl shadow-lg transform hover:scale-105 transition duration-300">
+              <img src="/icon-192.png" alt="Logo" className="w-16 h-16" />
             </div>
+          </div>
 
-            {/* Título */}
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-wide">
-              Gerenciador Financeiro
-            </h1>
-
-            {/* Subtítulo */}
-            <p className="text-blue-100 mt-2 text-sm md:text-base">
-              Acesse sua conta
-            </p>
-
+          <h1 className="text-xl md:text-2xl font-bold text-white tracking-wide">
+            Gerenciador Financeiro
+          </h1>
+          <p className="text-blue-100 mt-2 text-sm">Acesse sua conta</p>
         </div>
 
-      <div className="flex justify-center mb-5">
-        <form
-          onSubmit={handleLogin}
-          className="bg-white p-8 rounded-2xl shadow-lg w-80"
-        >
-          <h2 className="text-2xl font-bold mb-6 text-center text-black">
-            Login
-          </h2>
+        {/* Formulário */}
+        <div className="bg-white p-8 rounded-b-3xl shadow-lg">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                placeholder="seu@email.com"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-black"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-3 border-2 border-gray-700 rounded-lg mb-4 text-black"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-black"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <input
-            type="password"
-            placeholder="Senha"
-            className="w-full p-3 border-2 border-gray-700 rounded-lg mb-6 text-black"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold"
-          >
-            Entrar
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-semibold transition-colors mt-2"
+            >
+              Entrar
+            </button>
+          </form>
         </div>
       </div>
     </div>
